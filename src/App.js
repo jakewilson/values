@@ -4,7 +4,7 @@ import './bootstrap.min.css'
 
 function Card(props) {
   return (
-    <div className="Card" draggable="true">
+    <div className="Card" draggable="true" onDragStart={props.onDragStart}>
       <span>{props.value}</span>
     </div>
   );
@@ -19,14 +19,15 @@ function CardPlaceholder(props) {
 }
 
 function Pile(props) {
-  if (!props.topCard) {
-    return (
-      <CardPlaceholder name={props.placeholder}/>
-    );
+  let card = <CardPlaceholder name={props.placeholder}/>;
+  if (props.topCard) {
+    card = <Card value={props.topCard} onDragStart={props.onDragStart}/>;
   }
 
   return (
-    <Card value={props.topCard}/>
+    <div onDrop={props.onDrop} className="Pile" onDragOver={props.onDragOver}>
+      {card}
+    </div>
   );
 }
 
@@ -34,14 +35,21 @@ class App extends React.Component {
 
   constructor(props) {
     super(props);
+    // indices for the `this.state.piles` array
+    // the 'top' pile, 'least important' pile, 'important' pile, and 'most important' pile
+    this.TOP = 0; this.LI = 1; this.I = 2; this.MI = 3;
     this.state = {
-      topPile: this.getCards(),
-      // the 'least important' pile
-      liPile: [],
-      // the 'important pile'
-      iPile: [],
-      // the 'most important' pile
-      miPile: []
+      piles: [
+        this.getCards(),
+        [], [], []
+      ],
+      placeholderStrings: [
+        "Empty",
+        "Least Important",
+        "Important",
+        "Most Important"
+      ],
+      activeCard: null // the card currently being dragged
     }
   }
 
@@ -62,16 +70,52 @@ class App extends React.Component {
     ]
   }
 
+  onDrag(id, event) {
+    if (id < 0 || id >= this.state.piles.length) {
+      return;
+    }
+
+    this.setState((state) => ({
+      activeCard: state.piles[id].shift()
+    }));
+    console.log('dragging from pile ' + id);
+  }
+
+  onDragOver(id, event) {
+    event.preventDefault();
+  }
+
+  onDrop(id, event) {
+    event.preventDefault();
+    if (id < 0 || id >= this.state.piles.length) {
+      return;
+    }
+
+    const piles = this.state.piles;
+    piles[id].unshift(this.state.activeCard);
+
+    this.setState((state) => ({
+      piles: piles,
+      activeCard: null
+    }));
+    console.log('dropped on pile ' + id + '!');
+  }
+
   render() {
+    const piles = this.state.piles.map((pile, index) => {
+      return <Pile topCard={pile[0]} placeholder={this.state.placeholderStrings[index]}
+                   id={index}
+                   onDragStart={this.onDrag.bind(this, index)}
+                   onDrop={this.onDrop.bind(this, index)}
+                   onDragOver={this.onDragOver.bind(this, index)}/>
+    });
     return (
-      <div class="App">
-        <div class="row">
-          <Pile topCard={this.state.topPile[0]} placeholder="Empty"/>
+      <div className="App">
+        <div className="row">
+          {piles.shift()}
         </div>
-        <div class="row">
-          <Pile topCard={this.state.liPile[0]} placeholder="Least Important"/>
-          <Pile topCard={this.state.iPile[0]} placeholder="Important"/>
-          <Pile topCard={this.state.miPile[0]} placeholder="Most Important"/>
+        <div className="row">
+          {piles}
         </div>
       </div>
     );

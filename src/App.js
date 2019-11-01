@@ -4,7 +4,7 @@ import './bootstrap.min.css'
 
 function Card(props) {
   return (
-    <div className="Card" draggable="true" onDragStart={props.onDragStart}>
+    <div className="Card" draggable="true" onDragStart={props.onDragStart} onDragEnd={props.onDragEnd}>
       <span>{props.value}</span>
     </div>
   );
@@ -21,7 +21,7 @@ function CardPlaceholder(props) {
 function Pile(props) {
   let card = <CardPlaceholder name={props.placeholder}/>;
   if (props.topCard) {
-    card = <Card value={props.topCard} onDragStart={props.onDragStart}/>;
+    card = <Card value={props.topCard} onDragStart={props.onDragStart} onDragEnd={props.onDragEnd}/>;
   }
 
   return (
@@ -35,9 +35,7 @@ class App extends React.Component {
 
   constructor(props) {
     super(props);
-    // indices for the `this.state.piles` array
-    // the 'top' pile, 'least important' pile, 'important' pile, and 'most important' pile
-    this.TOP = 0; this.LI = 1; this.I = 2; this.MI = 3;
+
     this.state = {
       piles: [
         this.getCards(),
@@ -76,12 +74,14 @@ class App extends React.Component {
     }
 
     this.setState((state) => ({
-      activeCard: state.piles[id].shift()
+      activeCard: state.piles[id][0]
     }));
+
     console.log('dragging from pile ' + id);
   }
 
   onDragOver(id, event) {
+    // this is needed to drop the element
     event.preventDefault();
   }
 
@@ -94,11 +94,32 @@ class App extends React.Component {
     const piles = this.state.piles;
     piles[id].unshift(this.state.activeCard);
 
-    this.setState((state) => ({
+    this.setState({
+      piles: piles
+    });
+
+    console.log('dropped on pile ' + id + '!');
+  }
+
+  onDragEnd(id, event) {
+    if (id < 0 || id >= this.state.piles.length) {
+      return;
+    }
+
+    const piles = this.state.piles;
+
+    // a dropEffect of 'none' means the item was not dropped on a valid drop zone
+    if (event.nativeEvent.dataTransfer.dropEffect !== 'none') {
+      // if this was a valid drop, remove the dropped card from the original pile
+      piles[id].shift();
+    }
+
+    this.setState({
       piles: piles,
       activeCard: null
-    }));
-    console.log('dropped on pile ' + id + '!');
+    });
+
+    console.log(id + ' drag end');
   }
 
   render() {
@@ -107,8 +128,10 @@ class App extends React.Component {
                    id={index}
                    onDragStart={this.onDrag.bind(this, index)}
                    onDrop={this.onDrop.bind(this, index)}
+                   onDragEnd={this.onDragEnd.bind(this, index)}
                    onDragOver={this.onDragOver.bind(this, index)}/>
     });
+
     return (
       <div className="App">
         <div className="row">

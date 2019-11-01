@@ -18,63 +18,64 @@ function CardPlaceholder(props) {
   );
 }
 
-class Deck extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      cards: this.props.cards
-    }
-  }
-
-  componentDidMount() {
-
-  }
-
-  render() {
-    let card = <CardPlaceholder name="Empty Deck"/>;
-    if (this.state.cards && this.state.cards.length > 0) {
-      card = <Card value={this.state.cards[0]}/>;
-    }
+function Pile(props) {
+  if (!props.topCard) {
     return (
-      <div className="Deck">
-        {card}
-      </div>
+      <CardPlaceholder name={props.placeholder}/>
     );
   }
+
+  return (
+    <Card value={props.topCard}/>
+  );
 }
 
 class App extends React.Component {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      topPile: this.getCards(),
+      // the 'least important' pile
+      liPile: [],
+      // the 'important pile'
+      iPile: [],
+      // the 'most important' pile
+      miPile: []
+    }
+  }
+
+  getCards() {
+    return [
+      'Love',
+      'Health',
+      'Wealth',
+      'Comfort',
+      'Fun',
+      'Happiness',
+      'Success',
+      'Learning',
+      'Peace',
+      'Intimacy',
+      'Adventure',
+      'Security'
+    ]
+  }
+
   render() {
     return (
       <div class="App">
         <div class="row">
-          <Deck cards={getCards()}/>
+          <Pile topCard={this.state.topPile[0]} placeholder="Empty"/>
         </div>
         <div class="row">
-          <Deck />
-          <Deck />
-          <Deck />
+          <Pile topCard={this.state.liPile[0]} placeholder="Least Important"/>
+          <Pile topCard={this.state.iPile[0]} placeholder="Important"/>
+          <Pile topCard={this.state.miPile[0]} placeholder="Most Important"/>
         </div>
       </div>
     );
   }
-}
-
-function getCards() {
-  return [
-    'Love',
-    'Health',
-    'Wealth',
-    'Comfort',
-    'Fun',
-    'Happiness',
-    'Success',
-    'Learning',
-    'Peace',
-    'Intimacy',
-    'Adventure',
-    'Security'
-  ]
 }
 
 export default App;

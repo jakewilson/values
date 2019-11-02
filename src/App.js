@@ -13,19 +13,20 @@ function Card(props) {
 function CardPlaceholder(props) {
   return (
     <div className="CardPlaceholder">
-      {props.name}
+      Empty
     </div>
   );
 }
 
 function Pile(props) {
-  let card = <CardPlaceholder name={props.placeholder}/>;
+  let card = <CardPlaceholder name={props.name}/>;
   if (props.topCard) {
     card = <Card value={props.topCard} onDragStart={props.onDragStart} onDragEnd={props.onDragEnd}/>;
   }
 
   return (
     <div onDrop={props.onDrop} className="Pile" onDragOver={props.onDragOver}>
+      <span>{props.name}</span>
       {card}
     </div>
   );
@@ -41,8 +42,8 @@ class App extends React.Component {
         this.getCards(),
         [], [], []
       ],
-      placeholderStrings: [
-        "Empty",
+      pileNames: [
+        "Values",
         "Least Important",
         "Important",
         "Most Important"
@@ -124,8 +125,7 @@ class App extends React.Component {
 
   render() {
     const piles = this.state.piles.map((pile, index) => {
-      return <Pile topCard={pile[0]} placeholder={this.state.placeholderStrings[index]}
-                   id={index}
+      return <Pile topCard={pile[0]} name={this.state.pileNames[index]}
                    onDragStart={this.onDrag.bind(this, index)}
                    onDrop={this.onDrop.bind(this, index)}
                    onDragEnd={this.onDragEnd.bind(this, index)}
@@ -135,10 +135,10 @@ class App extends React.Component {
     return (
       <div className="App">
         <div className="row">
-          {piles.shift()}
+          {piles[0]}
         </div>
         <div className="row">
-          {piles}
+          {piles.slice(1)}
         </div>
       </div>
     );

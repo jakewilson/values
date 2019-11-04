@@ -37,6 +37,7 @@ class App extends React.Component {
   constructor(props) {
     super(props);
 
+    this.TOP_PILE = 0; this.LI_PILE = 1; this.I_PILE = 2; this.MI_PILE = 3;
     this.state = {
       piles: [
         this.getCards(),
@@ -77,8 +78,6 @@ class App extends React.Component {
     this.setState((state) => ({
       activeCard: state.piles[id][0]
     }));
-
-    console.log('dragging from pile ' + id);
   }
 
   onDragOver(id, event) {
@@ -92,14 +91,12 @@ class App extends React.Component {
       return;
     }
 
-    const piles = this.state.piles;
+    const piles = this.state.piles.slice();
     piles[id].unshift(this.state.activeCard);
 
     this.setState({
       piles: piles
     });
-
-    console.log('dropped on pile ' + id + '!');
   }
 
   onDragEnd(id, event) {
@@ -107,7 +104,7 @@ class App extends React.Component {
       return;
     }
 
-    const piles = this.state.piles;
+    const piles = this.state.piles.slice();
 
     // a dropEffect of 'none' means the item was not dropped on a valid drop zone
     if (event.nativeEvent.dataTransfer.dropEffect !== 'none') {
@@ -120,7 +117,23 @@ class App extends React.Component {
       activeCard: null
     });
 
-    console.log(id + ' drag end');
+    if (piles[this.TOP_PILE].length === 0) {
+      this.newRound();
+    }
+  }
+
+  newRound() {
+    // TODO
+    // maybe alert the user that the everything not in the 'most important' pile
+    // will be thrown away
+    const pileToSave = this.state.piles[this.MI_PILE].slice();
+
+    if (pileToSave.length >= 3) {
+      this.setState((state) => {
+        state.piles = state.piles.map((pile) => []);
+        state.piles[this.TOP_PILE] = pileToSave;
+      });
+    }
   }
 
   render() {
